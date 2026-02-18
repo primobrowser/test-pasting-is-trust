@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>isTrusted Demo</title>
+  <style>
+    body { font: 16px system-ui, -apple-system, Segoe UI, Roboto, Arial; padding: 20px; }
+    input, button { font: inherit; padding: 10px 12px; }
+    .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    #log { margin-top: 14px; white-space: pre-wrap; background: #f6f6f6; padding: 12px; border-radius: 8px; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; background: #eaeaea; }
+  </style>
+</head>
+<body>
+<h1>event.isTrusted Check</h1>
+
+<div class="row">
+  <input id="inp" placeholder="Type here..." autocomplete="off" />
+  <button id="simulate">Simulate Input (script)</button>
+  <span class="badge" id="last">last: —</span>
+</div>
+
+<div id="log"></div>
+
+<script>
+  const inp = document.getElementById("inp");
+  const btn = document.getElementById("simulate");
+  const logEl = document.getElementById("log");
+  const lastEl = document.getElementById("last");
+
+  function addLog(e, extra = "") {
+    const line =
+      `[${new Date().toLocaleTimeString()}] ${e.type}` +
+      ` | isTrusted=${e.isTrusted}` +
+      ` | value="${inp.value}"` +
+      (extra ? ` | ${extra}` : "");
+
+    logEl.textContent = line + "\n" + logEl.textContent;
+    lastEl.textContent = `last: ${e.type}, isTrusted=${e.isTrusted}`;
+  }
+
+  // Listen to multiple events so the difference is easy to see
+  ["keydown", "beforeinput", "input", "change", "paste"].forEach((type) => {
+    inp.addEventListener(type, (e) => {
+      const extra =
+        (e.inputType ? `inputType=${e.inputType}` : "") +
+        (e.data != null ? ` data=${JSON.stringify(e.data)}` : "");
+      addLog(e, extra.trim());
+    });
+  });
+
+  // Button: create an "untrusted" input event via dispatchEvent
+  btn.addEventListener("click", () => {
+    // Change the value programmatically
+    inp.value += " [script]";
+    // Dispatch an event (it will have isTrusted=false)
+    const ev = new Event("input", { bubbles: true });
+    inp.dispatchEvent(ev);
+  });
+</script>
+</body>
+</html>
